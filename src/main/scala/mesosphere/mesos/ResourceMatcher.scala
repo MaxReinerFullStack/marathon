@@ -185,11 +185,11 @@ object ResourceMatcher extends StrictLogging {
     }
 
     val meetsAllConstraints: Boolean = {
-      lazy val instances = knownInstances.filter { inst =>
+      lazy val instances = knownInstances/*.filter { inst =>
         // we ignore instances of older configurations: this way we can place a new instance on an agent that already
         // hosts an old instance that will be killed once a new one is running/healthy/ready
         inst.runSpecVersion >= runSpec.versionInfo.lastConfigChangeVersion
-      }
+      }*/
       val badConstraints = runSpec.constraints.filterNot { constraint =>
         Constraints.meetsConstraint(instances, offer, constraint)
       }

@@ -87,7 +87,7 @@ class GroupManagerTest extends AkkaUnitTest with GroupCreation {
       val rootGroup = createRootGroup(Map(app1.id -> app1))
       val update = groupManager.assignDynamicServicePorts(createRootGroup(), rootGroup)
 
-      val assignedPorts: Set[Int] = update.transitiveApps.flatMap(_.portNumbers)
+      val assignedPorts: Set[Int] = update.transitiveApps.flatMap(_.portNumbers).to[Set]
       assignedPorts should have size 2
     }
 
@@ -99,7 +99,7 @@ class GroupManagerTest extends AkkaUnitTest with GroupCreation {
       val updatedGroup = createRootGroup(Map(updatedApp1.id -> updatedApp1))
       val result = groupManager.assignDynamicServicePorts(originalGroup, updatedGroup)
 
-      val assignedPorts: Set[Int] = result.transitiveApps.flatMap(_.portNumbers)
+      val assignedPorts: Set[Int] = result.transitiveApps.flatMap(_.portNumbers).to[Set]
       assignedPorts should have size 3
     }
 
@@ -134,7 +134,7 @@ class GroupManagerTest extends AkkaUnitTest with GroupCreation {
         val app = AppDefinition("/app1".toPath, portDefinitions = Seq(), container = Some(container), networks = virtualNetwork)
         val rootGroup = createRootGroup(Map(app.id -> app))
         val updatedGroup = groupManager.assignDynamicServicePorts(createRootGroup(), rootGroup)
-        val updatedApp = updatedGroup.transitiveApps.head
+        val updatedApp = updatedGroup.transitiveApps.next()
         updatedApp.hasDynamicServicePorts should be (false)
         updatedApp.hostPorts should have size 4
         updatedApp.servicePorts should have size 4

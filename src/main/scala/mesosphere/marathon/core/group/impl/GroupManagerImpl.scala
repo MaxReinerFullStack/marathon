@@ -34,12 +34,12 @@ trait AssignDynamicServiceLogic extends StrictLogging {
 
   /**
     * Checks whether newApp is new or changed.
-    * @param originalApps A map of the original apps form before the update.
+    * @param original The original RootGroup form before the update.
     * @param newApp The new app that is tested.
     * @return true if app is new or an updated, false otherwise.
     */
-  def changedOrNew(originalApps: Map[AppDefinition.AppKey, AppDefinition], newApp: AppDefinition): Boolean = {
-    originalApps.get(newApp.id) match {
+  def changedOrNew(original: RootGroup, newApp: AppDefinition): Boolean = {
+    original.app(newApp.id) match {
       case None => true // new app
       case Some(oldApp) => oldApp.isUpgrade(newApp)
     }
@@ -47,7 +47,7 @@ trait AssignDynamicServiceLogic extends StrictLogging {
 
   def assignDynamicServicePorts(from: RootGroup, to: RootGroup): RootGroup = {
     val portRange = Range(config.localPortMin(), config.localPortMax())
-    var taken = from.transitiveApps.flatMap(_.servicePorts) ++ to.transitiveApps.flatMap(_.servicePorts)
+    var taken: Set[Int] = (from.transitiveApps.flatMap(_.servicePorts) ++ to.transitiveApps.flatMap(_.servicePorts)).to[Set]
 
     def nextGlobalFreePort: Int = {
       val port = portRange.find(!taken.contains(_))
@@ -101,8 +101,7 @@ trait AssignDynamicServiceLogic extends StrictLogging {
 
     val dynamicApps: Iterator[AppDefinition] =
       to.transitiveApps
-        .iterator
-        .filter{ newApp => changedOrNew(from.transitiveAppsById, newApp) }
+        .filter{ newApp => changedOrNew(from, newApp) }
         .map {
           // assign values for service ports that the user has left "blank" (set to zero)
           case app: AppDefinition if app.hasDynamicServicePorts => assignPorts(app)
